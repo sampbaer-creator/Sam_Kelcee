@@ -4,7 +4,6 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>RSVP — Samuel & Kelcee's Wedding</title>
-
   <script src="https://cdn.tailwindcss.com?plugins=forms,typography,aspect-ratio"></script>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Quicksand:wght@400;600&display=swap" rel="stylesheet">
   <style>
@@ -40,7 +39,7 @@
 
   <p>We would love for you to come celebrate with us! Please let us know your information below.</p>
 
-  <form class="card space-y-4" action="save_invite.php" method="POST">
+  <form class="card space-y-4" action="/save_invite.php" method="POST">
     <div class="grid md:grid-cols-2 gap-4">
       <label class="block">
         <span class="text-sm font-semibold">Full name</span>
