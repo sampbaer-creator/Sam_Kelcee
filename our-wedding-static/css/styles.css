@@ -1,0 +1,116 @@
+
+/* ----------------------------------------
+   COLOR PALETTE — Modern + Old Money Blend
+-----------------------------------------*/
+:root {
+  --dusty-blue: #A8C3D1;
+  --sage-green: #B7C9A9;
+  --blush-pink: #F3CFC6;
+  --neutral: #FAF9F7;
+
+  /* Added luxury tones */
+  --deep-olive: #5A6A52;
+  --rich-cream: #F5F1E8;
+  --gold-accent: #C4B998;
+}
+
+/* Smooth page feel */
+html {
+  scroll-behavior: smooth;
+}
+
+/* ----------------------------------------
+   TYPOGRAPHY & GLOBAL STYLING
+-----------------------------------------*/
+body {
+  font-family: 'Quicksand', system-ui, sans-serif;
+  background-color: var(--rich-cream);
+  color: #3A3A33; /* softer charcoal */
+  line-height: 1.7;
+}
+
+.font-display {
+  font-family: 'Playfair Display', serif;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+
+/* Header refinement */
+header {
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(0,0,0,0.06);
+}
+
+/* Links */
+a {
+  text-decoration: none;
+  color: var(--deep-olive);
+  font-weight: 500;
+  transition: color 0.2s ease;
+}
+a:hover {
+  color: var(--sage-green);
+}
+
+/* ----------------------------------------
+   BUTTONS
+-----------------------------------------*/
+.btn-accent {
+  background: linear-gradient(
+    90deg,
+    var(--sage-green),
+    var(--dusty-blue)
+  );
+  color: white;
+  border-radius: 999px;
+  padding: 0.6rem 1.4rem;
+  font-weight: 500;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  transition: 0.2s ease-in-out;
+}
+.btn-accent:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+  opacity: 0.95;
+}
+
+/* ----------------------------------------
+   CARDS — used on every page
+-----------------------------------------*/
+.card {
+  background: var(--neutral);
+  padding: 1.75rem;
+  border-radius: 1rem;
+  border: 1px solid rgba(0,0,0,0.07); /* old-money detail */
+  box-shadow: 0 6px 18px rgba(0,0,0,0.04);
+}
+
+/* Consistent card headings */
+.card h2,
+.card h3 {
+  font-family: 'Playfair Display', serif;
+  color: var(--deep-olive);
+  margin-bottom: 0.5rem;
+}
+
+/* ----------------------------------------
+   COUNTDOWN WIDGET
+-----------------------------------------*/
+#countdown {
+  font-weight: bold;
+  font-family: 'Playfair Display', serif;
+  color: var(--sage-green);
+}
+
+/* ----------------------------------------
+   SPACING/ANIMATION
+-----------------------------------------*/
+.fade-in {
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+.is-visible {
+  opacity: 1;
+  transform: none;
+}
