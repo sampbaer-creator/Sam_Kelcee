@@ -38,7 +38,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         "Hi $name,\n\nThank you for requesting an invitation! We'll be in touch soon.\n\n– Samuel & Kelcee",
         "From: updates@kelceesam-agemdaagffethha2.westus3-01.azurewebsites.net");
 
-    header("Location: /rsvp.php?status=success");
-    exit();
+  // redirect back to form with success flag
+header("Location: /rsvp.php?status=success");
+exit();
+
 }
 ?>
