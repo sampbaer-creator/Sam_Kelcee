@@ -1,6 +1,10 @@
 <?php
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
 $success = false;
-$error = false;
+$errorMsg = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
@@ -11,104 +15,78 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $state   = trim($_POST['state'] ?? '');
     $zip     = trim($_POST['zip'] ?? '');
 
-    if ($name !== '' && filter_var($email, FILTER_VALIDATE_EMAIL)) {
-
-        $timestamp = date('Y-m-d H:i:s');
-
-        // ✅ Azure-safe writable directory
-        $storageDir = $_SERVER['HOME'] . '/site/storage';
-
-        // ✅ Create directory if it does not exist
-        if (!is_dir($storageDir)) {
-            mkdir($storageDir, 0777, true);
-        }
-
-        $filename = $storageDir . '/wedding_guest_list_2026.csv';
-
-        $file_exists = file_exists($filename);
-        $file = fopen($filename, 'a');
-
-        if ($file !== false) {
-            if (!$file_exists) {
-                fputcsv($file, [
-                    'Date Submitted',
-                    'Full Name',
-                    'Email',
-                    'Address',
-                    'City',
-                    'State',
-                    'Zip'
-                ]);
-            }
-
-            fputcsv($file, [
-                $timestamp,
-                $name,
-                $email,
-                $address,
-                $city,
-                $state,
-                $zip
-            ]);
-
-            fclose($file);
-            $success = true;
-        } else {
-            $error = true;
-        }
-
+    if ($name === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $errorMsg = 'Validation failed';
     } else {
-        $error = true;
+
+        $storageDir = $_SERVER['HOME'] . '/site/storage';
+        $filename   = $storageDir . '/wedding_guest_list_2026.csv';
+
+        if (!is_dir($storageDir)) {
+            if (!mkdir($storageDir, 0777, true)) {
+                $errorMsg = 'Failed to create storage directory';
+            }
+        }
+
+        if ($errorMsg === '') {
+            $file = fopen($filename, 'a');
+
+            if ($file === false) {
+                $errorMsg = 'Failed to open file for writing: ' . $filename;
+            } else {
+                if (filesize($filename) === 0) {
+                    fputcsv($file, ['Date','Name','Email','Address','City','State','Zip']);
+                }
+
+                fputcsv($file, [
+                    date('Y-m-d H:i:s'),
+                    $name,
+                    $email,
+                    $address,
+                    $city,
+                    $state,
+                    $zip
+                ]);
+
+                fclose($file);
+                $success = true;
+            }
+        }
     }
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>RSVP — Samuel & Kelcee's Wedding</title>
-
-<script src="https://cdn.tailwindcss.com?plugins=forms,typography,aspect-ratio"></script>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Quicksand:wght@400;600&display=swap" rel="stylesheet">
-
+<meta charset="utf-8">
+<title>RSVP Debug</title>
 <style>
-:root { --dusty-blue:#A8C3D1; --sage-green:#B7C9A9; --neutral:#FAF9F7; }
-body{background-color:var(--neutral);}
-.btn-accent{background:linear-gradient(90deg,var(--sage-green),var(--dusty-blue));color:white;border-radius:999px;padding:.6rem 1.4rem;font-weight:500;}
-.card{background:white;padding:1.75rem;border-radius:1rem;border:1px solid rgba(0,0,0,.07);}
+body{font-family:sans-serif;background:#fafafa;padding:40px}
+.ok{background:#d1fae5;border:1px solid #10b981;padding:12px}
+.err{background:#fee2e2;border:1px solid #ef4444;padding:12px}
 </style>
 </head>
+<body>
 
-<body class="antialiased text-gray-800 font-sans">
-
-<main class="max-w-2xl mx-auto px-4 py-10 space-y-6">
-
-<h1 class="text-3xl font-display" style="color: var(--dusty-blue)">Request Invitation</h1>
+<h2>RSVP Debug Page</h2>
 
 <?php if ($success): ?>
-<div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded">
-<strong>Success!</strong> Your information was saved.
-</div>
+<div class="ok">✅ SUCCESS — CSV written correctly</div>
 <?php endif; ?>
 
-<?php if ($error): ?>
-<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
-<strong>Error.</strong> Please try again.
-</div>
+<?php if ($errorMsg): ?>
+<div class="err">❌ ERROR: <?= htmlspecialchars($errorMsg) ?></div>
 <?php endif; ?>
 
-<form method="POST" class="card space-y-3">
-<input name="name" placeholder="Full Name" required class="w-full border rounded p-2">
-<input name="email" type="email" placeholder="Email" required class="w-full border rounded p-2">
-<input name="address" placeholder="Address" required class="w-full border rounded p-2">
-<input name="city" placeholder="City" required class="w-full border rounded p-2">
-<input name="state" placeholder="State" required class="w-full border rounded p-2">
-<input name="zip" placeholder="Zip" required class="w-full border rounded p-2">
-<button type="submit" class="btn-accent mt-2">Submit</button>
+<form method="POST">
+<input name="name" placeholder="Name" required><br><br>
+<input name="email" placeholder="Email" required><br><br>
+<input name="address" placeholder="Address" required><br><br>
+<input name="city" placeholder="City" required><br><br>
+<input name="state" placeholder="State" required><br><br>
+<input name="zip" placeholder="Zip" required><br><br>
+<button type="submit">Submit</button>
 </form>
 
-</main>
 </body>
 </html>
