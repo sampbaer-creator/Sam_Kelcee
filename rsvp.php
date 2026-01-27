@@ -15,12 +15,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         $timestamp = date('Y-m-d H:i:s');
 
-        $filename = $_SERVER['HOME'] . '/site/wwwroot/wedding_guest_list_2026.csv';
+        // ✅ Azure WRITABLE location
+        $filename = $_SERVER['HOME'] . '/site/storage/wedding_guest_list_2026.csv';
 
         $file_exists = file_exists($filename);
         $file = fopen($filename, 'a');
 
-        if ($file) {
+        if ($file !== false) {
             if (!$file_exists) {
                 fputcsv($file, ['Date Submitted','Full Name','Email','Address','City','State','Zip']);
             }
@@ -52,8 +53,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <style>
 :root { --dusty-blue:#A8C3D1; --sage-green:#B7C9A9; --neutral:#FAF9F7; }
 body{background-color:var(--neutral);}
-.btn-accent{background:linear-gradient(90deg,var(--sage-green),var(--dusty-blue));color:white;border-radius:999px;padding:.6rem 1.4rem;font-weight:500;}
-.card{background:white;padding:1.75rem;border-radius:1rem;border:1px solid rgba(0,0,0,.07);}
+.btn-accent{
+  background:linear-gradient(90deg,var(--sage-green),var(--dusty-blue));
+  color:white;border-radius:999px;padding:.6rem 1.4rem;font-weight:500;
+}
+.card{
+  background:white;padding:1.75rem;border-radius:1rem;border:1px solid rgba(0,0,0,.07);
+}
 </style>
 </head>
 
@@ -76,13 +82,13 @@ body{background-color:var(--neutral);}
 <?php endif; ?>
 
 <form method="POST" class="card space-y-3">
-<input name="name" placeholder="Full Name" required class="w-full border rounded p-2">
-<input name="email" type="email" placeholder="Email" required class="w-full border rounded p-2">
-<input name="address" placeholder="Address" required class="w-full border rounded p-2">
-<input name="city" placeholder="City" required class="w-full border rounded p-2">
-<input name="state" placeholder="State" required class="w-full border rounded p-2">
-<input name="zip" placeholder="Zip" required class="w-full border rounded p-2">
-<button type="submit" class="btn-accent mt-2">Submit</button>
+  <input name="name" placeholder="Full Name" required class="w-full border rounded p-2">
+  <input name="email" type="email" placeholder="Email" required class="w-full border rounded p-2">
+  <input name="address" placeholder="Address" required class="w-full border rounded p-2">
+  <input name="city" placeholder="City" required class="w-full border rounded p-2">
+  <input name="state" placeholder="State" required class="w-full border rounded p-2">
+  <input name="zip" placeholder="Zip" required class="w-full border rounded p-2">
+  <button type="submit" class="btn-accent mt-2">Submit</button>
 </form>
 
 </main>
