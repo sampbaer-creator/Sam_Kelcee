@@ -1,89 +1,98 @@
 <?php
+// ============================
+// HANDLE FORM SUBMISSION
+// ============================
+$success = false;
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-  require __DIR__ . '/save_invite.php';
-  exit;
+
+    $name    = trim($_POST['name'] ?? '');
+    $email   = trim($_POST['email'] ?? '');
+    $address = trim($_POST['address'] ?? '');
+    $city    = trim($_POST['city'] ?? '');
+    $state   = trim($_POST['state'] ?? '');
+    $zip     = trim($_POST['zip'] ?? '');
+
+    if ($name !== '' && filter_var($email, FILTER_VALIDATE_EMAIL)) {
+
+        $timestamp = date('Y-m-d H:i:s');
+
+        // Azure-safe writable location
+        $filename = $_SERVER['HOME'] . '/site/wwwroot/wedding_guest_list_2026.csv';
+
+        $file_exists = file_exists($filename);
+        $file = fopen($filename, 'a');
+
+        if (!$file_exists) {
+            fputcsv($file, ['Date Submitted','Full Name','Email','Address','City','State','Zip']);
+        }
+
+        fputcsv($file, [$timestamp,$name,$email,$address,$city,$state,$zip]);
+        fclose($file);
+
+        // Email notification
+        $headers  = "From: updates@kelceesam-agemdaagffethha2.westus3-01.azurewebsites.net\r\n";
+        $headers .= "Reply-To: $email\r\n";
+
+        mail(
+            "sampbaer@gmail.com, kelcee5young@gmail.com",
+            "Wedding Invite Request: $name",
+            "Name: $name\nEmail: $email\nAddress: $address\nCity: $city\nState: $state\nZip: $zip\n\nSubmitted: $timestamp",
+            $headers
+        );
+
+        mail(
+            $email,
+            "We've received your RSVP request!",
+            "Hi $name,\n\nThank you for requesting an invitation!\n\n– Samuel & Kelcee",
+            $headers
+        );
+
+        $success = true;
+    }
 }
 ?>
-
-
-
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>RSVP — Samuel & Kelcee's Wedding</title>
-  <script src="https://cdn.tailwindcss.com?plugins=forms,typography,aspect-ratio"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Quicksand:wght@400;600&display=swap" rel="stylesheet">
-  <style>
-    :root { --dusty-blue:#A8C3D1; --sage-green:#B7C9A9; --neutral:#FAF9F7; }
-    body{background-color:var(--neutral);}
-    .btn-accent{background:linear-gradient(90deg,var(--sage-green),var(--dusty-blue));color:white;border-radius:999px;padding:.6rem 1.4rem;font-weight:500;box-shadow:0 2px 8px rgba(0,0,0,.08);transition:.2s;border:none;cursor:pointer;}
-    .btn-accent:hover{transform:translateY(-1px);box-shadow:0 4px 16px rgba(0,0,0,.12);opacity:.95;}
-    .card{background:white;padding:1.75rem;border-radius:1rem;border:1px solid rgba(0,0,0,.07);box-shadow:0 6px 18px rgba(0,0,0,.04);}
-  </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>RSVP — Samuel & Kelcee's Wedding</title>
+
+<script src="https://cdn.tailwindcss.com?plugins=forms,typography,aspect-ratio"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Quicksand:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+:root { --dusty-blue:#A8C3D1; --sage-green:#B7C9A9; --neutral:#FAF9F7; }
+body{background-color:var(--neutral);}
+.btn-accent{background:linear-gradient(90deg,var(--sage-green),var(--dusty-blue));color:white;border-radius:999px;padding:.6rem 1.4rem;font-weight:500;box-shadow:0 2px 8px rgba(0,0,0,.08);}
+.card{background:white;padding:1.75rem;border-radius:1rem;border:1px solid rgba(0,0,0,.07);box-shadow:0 6px 18px rgba(0,0,0,.04);}
+</style>
 </head>
+
 <body class="antialiased text-gray-800 font-sans">
 
-<header class="bg-white/80 sticky top-0 z-50 shadow-sm backdrop-blur">
-  <div class="max-w-5xl mx-auto px-6 py-4 flex justify-between items-center">
-    <a href="index.html" class="font-display text-2xl" style="color: var(--dusty-blue)">Samuel & Kelcee Baer</a>
-    <nav class="hidden md:flex space-x-4 text-sm font-semibold">
-      <a href="index.html" class="hover:text-[var(--sage-green)]" style="color: var(--dusty-blue)">Home</a>
-      <a href="rsvp.php" class="hover:text-[var(--sage-green)]">Address</a>
-      <a href="registry.html" class="hover:text-[var(--sage-green)]">Registry</a>
-      <a href="event-details.html" class="hover:text-[var(--sage-green)]">Event Details</a>
-    </nav>
-  </div>
-</header>
-
 <main class="max-w-2xl mx-auto px-4 py-10 space-y-8">
-  <h1 class="text-3xl font-display mb-2" style="color: var(--dusty-blue)">Request Invitation</h1>
 
-  <?php if(isset($_GET['status']) && $_GET['status'] == 'success'): ?>
-    <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative">
-      <strong class="font-bold">Sent!</strong> We've received your info. Thank you!
-    </div>
-  <?php endif; ?>
+<h1 class="text-3xl font-display mb-2" style="color: var(--dusty-blue)">Request Invitation</h1>
 
-  <p>We would love for you to come celebrate with us! Please let us know your information below.</p>
+<?php if ($success): ?>
+<div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded">
+<strong>Sent!</strong> We've received your info. Thank you!
+</div>
+<?php endif; ?>
 
-  <form class="card space-y-4" method="POST">
-    <div class="grid md:grid-cols-2 gap-4">
-      <label class="block">
-        <span class="text-sm font-semibold">Full name</span>
-        <input name="name" required class="mt-1 block w-full rounded-md border-gray-200 shadow-sm focus:ring-[var(--sage-green)]" />
-      </label>
-      <label class="block">
-        <span class="text-sm font-semibold">Email</span>
-        <input name="email" type="email" required class="mt-1 block w-full rounded-md border-gray-200 shadow-sm focus:ring-[var(--sage-green)]" />
-      </label>
-      <label class="block md:col-span-2">
-        <span class="text-sm font-semibold">Address</span>
-        <input name="address" required class="mt-1 block w-full rounded-md border-gray-200 shadow-sm focus:ring-[var(--sage-green)]" />
-      </label>
-      <div class="grid md:grid-cols-3 gap-4 md:col-span-2">
-        <label class="block">
-          <span class="text-sm font-semibold">City</span>
-          <input name="city" required class="mt-1 block w-full rounded-md border-gray-200 shadow-sm focus:ring-[var(--sage-green)]" />
-        </label>
-        <label class="block">
-          <span class="text-sm font-semibold">State</span>
-          <input name="state" required class="mt-1 block w-full rounded-md border-gray-200 shadow-sm focus:ring-[var(--sage-green)]" />
-        </label>
-        <label class="block">
-          <span class="text-sm font-semibold">Zip Code / Postal Code</span>
-          <input name="zip" required pattern="[A-Za-z0-9\s-]{3,10}" class="mt-1 block w-full rounded-md border-gray-200 shadow-sm focus:ring-[var(--sage-green)]" />
-        </label>
-      </div>
-    </div>
-    <button type="submit" class="btn-accent mt-4">Submit Info</button>
-  </form>
+<form method="POST" class="card space-y-4">
+<input name="name" placeholder="Full Name" required class="w-full rounded border p-2">
+<input name="email" type="email" placeholder="Email" required class="w-full rounded border p-2">
+<input name="address" placeholder="Address" required class="w-full rounded border p-2">
+<input name="city" placeholder="City" required class="w-full rounded border p-2">
+<input name="state" placeholder="State" required class="w-full rounded border p-2">
+<input name="zip" placeholder="Zip" required class="w-full rounded border p-2">
+<button class="btn-accent mt-4" type="submit">Submit</button>
+</form>
+
 </main>
-
-<footer class="bg-white border-t mt-16 py-6 text-center text-sm text-gray-500">
-  © 2026 Samuel & Kelcee Baer — All Rights Reserved
-</footer>
 </body>
 </html>
