@@ -1,3 +1,13 @@
+<?php
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+  require __DIR__ . '/save_invite.php';
+  exit;
+}
+?>
+
+
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -39,7 +49,8 @@
 
   <p>We would love for you to come celebrate with us! Please let us know your information below.</p>
 
-  <form class="card space-y-4" action="save_invite.php" method="POST">
+  <form class="card space-y-4" method="POST">
+
     <div class="grid md:grid-cols-2 gap-4">
       <label class="block">
         <span class="text-sm font-semibold">Full name</span>
