@@ -5,8 +5,8 @@ $my_key  = 'ezQFDCdIGw1gvKIlceXfnymph21fhb7gxP1EcsFqOCnzxkf9DtGp9yuKfvZfaZy3hKjS
 
 // 2. We set these for you based on your screenshot
 $my_host = 'https://kelceesam.documents.azure.com:443/'; 
-$my_db   = 'WeddingDB';  // Must match Azure EXACTLY (Capitals matter!)
-$my_col  = 'Guests';     // Must match Azure EXACTLY
+$my_db   = 'WeddingDB';
+$my_col  = 'Guests';
 // ---------------------
 
 class CosmosDB {
@@ -18,13 +18,11 @@ class CosmosDB {
         $this->coll = $coll;
     }
     
-    private function request($verb, $rid, $rtype, $data = null) {
+    // Updated request function to accept Partition Key ($pk)
+    private function request($verb, $rid, $rtype, $data = null, $pk = null) {
         $date = gmdate('D, d M Y H:i:s T');
         $keyDecoded = base64_decode($this->key);
         
-        // --- THE FIX: DO NOT LOWERCASE THE RESOURCE ID ($rid) ---
-        // We only lowercase the verb and resource type. 
-        // We keep $rid exactly as you typed it (WeddingDB).
         $sigString = strtolower($verb) . "\n" . 
                      strtolower($rtype) . "\n" . 
                      $rid . "\n" . 
@@ -40,8 +38,13 @@ class CosmosDB {
             "x-ms-version: 2018-12-31",
             "Content-Type: application/json"
         ];
+
+        // --- THE FIX: ADD PARTITION KEY HEADER ---
+        if ($pk !== null) {
+            // Partition keys must be sent as a JSON array ["email@test.com"]
+            $headers[] = "x-ms-documentdb-partitionkey: " . json_encode([$pk]);
+        }
         
-        // Remove port number for the actual curl request to avoid DNS issues
         $cleanHost = parse_url($this->host, PHP_URL_HOST);
         $url = "https://" . $cleanHost . "/dbs/{$this->db}/colls/{$this->coll}/$rtype";
         
@@ -49,7 +52,6 @@ class CosmosDB {
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $verb);
         curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        // SSL Verify false is sometimes needed on older Azure PHP stacks, but try true first
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true); 
         if ($data) curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
         
@@ -63,9 +65,12 @@ class CosmosDB {
     
     public function createDocument($data) {
         if (!isset($data['id'])) $data['id'] = uniqid(); 
-        // For creating a document, the Resource ID is the COLLECTION link
         $rid = "dbs/{$this->db}/colls/{$this->coll}";
-        return $this->request('POST', $rid, 'docs', $data);
+        
+        // Pass the 'email' as the partition key because you set /email in Azure
+        $partitionKey = $data['email'] ?? null;
+        
+        return $this->request('POST', $rid, 'docs', $data, $partitionKey);
     }
 }
 
@@ -96,9 +101,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             $error = true;
             $errorMsg = 'Error ' . $result['code'] . ': ' . ($result['data']['message'] ?? 'Unknown Error');
-            if ($result['code'] == 0) $errorMsg .= ' (Connection Failed: ' . $result['curl_err'] . ')';
-            if ($result['code'] == 401) $errorMsg .= ' (Keys rejected - check capitalization)';
-            if ($result['code'] == 404) $errorMsg .= ' (Database "WeddingDB" or Container "Guests" not found)';
+            if ($result['code'] == 400) $errorMsg .= ' (Partition Key Mismatch - Ensure email is valid)';
         }
     }
 }
