@@ -5,6 +5,7 @@ $errorMsg = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
+    // 1. Sanitize Input
     $name    = trim($_POST['name'] ?? '');
     $email   = trim($_POST['email'] ?? '');
     $address = trim($_POST['address'] ?? '');
@@ -12,87 +13,56 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $state   = trim($_POST['state'] ?? '');
     $zip     = trim($_POST['zip'] ?? '');
 
+    // 2. Validate Input
     if ($name === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $error = true;
         $errorMsg = 'Please enter a valid name and email.';
     } else {
-
-        $conn = getenv('AZURE_STORAGE_CONNECTION_STRING');
-
-        preg_match('/AccountName=([^;]+)/', $conn, $m1);
-        preg_match('/AccountKey=([^;]+)/', $conn, $m2);
-
-        $account = $m1[1] ?? null;
-        $key     = $m2[1] ?? null;
-
-        if (!$account || !$key) {
-            $error = true;
-            $errorMsg = 'Storage configuration error.';
+        // 3. Connect to Cosmos DB
+        // Ensure db_connect.php is in the same folder
+        if (file_exists('db_connect.php')) {
+            require_once 'db_connect.php';
         } else {
+            $error = true;
+            $errorMsg = 'Server error: Missing database connector.';
+        }
 
-            $container = 'rsvp';
-            $blob = 'wedding_guest_list_2026.csv';
-            $timestamp = date('Y-m-d H:i:s');
+        if (!$error) {
+            // Retrieve keys from Azure App Service Environment Variables
+            $host = getenv('COSMOS_ENDPOINT');
+            $key = getenv('COSMOS_KEY');
+            $database = 'WeddingDB'; // Ensure this matches your Azure setup
+            $container = 'Guests';   // Ensure this matches your Azure setup
 
-            $row = [
-                $timestamp,
-                $name,
-                $email,
-                $address,
-                $city,
-                $state,
-                $zip
-            ];
-
-            $csvLine = '"' . implode('","', array_map('addslashes', $row)) . '"' . "\n";
-            $url = "https://$account.blob.core.windows.net/$container/$blob";
-
-            $existing = @file_get_contents($url);
-            if ($existing === false) {
-                $existing = "\"Date Submitted\",\"Full Name\",\"Email\",\"Address\",\"City\",\"State\",\"Zip\"\n";
-            }
-
-            $data = $existing . $csvLine;
-            $date = gmdate('D, d M Y H:i:s T');
-            $len  = strlen($data);
-
-            $stringToSign =
-                "PUT\n\n\n$len\n\ntext/csv\n\n\n\n\n\n\n" .
-                "x-ms-blob-type:BlockBlob\n" .
-                "x-ms-date:$date\n" .
-                "x-ms-version:2020-10-02\n" .
-                "/$account/$container/$blob";
-
-            $sig = base64_encode(
-                hash_hmac('sha256', $stringToSign, base64_decode($key), true)
-            );
-
-            $headers = [
-                "Authorization: SharedKey $account:$sig",
-                "x-ms-blob-type: BlockBlob",
-                "x-ms-date: $date",
-                "x-ms-version: 2020-10-02",
-                "Content-Type: text/csv",
-                "Content-Length: $len"
-            ];
-
-            $ch = curl_init($url);
-            curl_setopt_array($ch, [
-                CURLOPT_CUSTOMREQUEST => 'PUT',
-                CURLOPT_HTTPHEADER => $headers,
-                CURLOPT_POSTFIELDS => $data,
-                CURLOPT_RETURNTRANSFER => true
-            ]);
-
-            curl_exec($ch);
-            $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-            curl_close($ch);
-
-            if ($code === 201) {
-                $success = true;
-            } else {
+            if (!$host || !$key) {
                 $error = true;
-                $errorMsg = 'Please try again.';
+                $errorMsg = 'Database configuration error. Please check App Service settings.';
+            } else {
+                // Initialize Connection
+                $cosmos = new CosmosDB($host, $key, $database, $container);
+
+                // Prepare Data Package (JSON)
+                $guestData = [
+                    'name'    => $name,
+                    'email'   => $email,
+                    'address' => $address,
+                    'city'    => $city,
+                    'state'   => $state,
+                    'zip'     => $zip,
+                    'date'    => date('Y-m-d H:i:s') // Timestamp
+                ];
+
+                // Send to Azure
+                $result = $cosmos->createDocument($guestData);
+
+                // Check Result (HTTP 200-299 means success)
+                if ($result['code'] >= 200 && $result['code'] < 300) {
+                    $success = true;
+                } else {
+                    $error = true;
+                    // Log the error code for debugging (optional)
+                    $errorMsg = 'Could not save RSVP. Error Code: ' . $result['code'];
+                }
             }
         }
     }
