@@ -3,9 +3,23 @@ $success = false;
 $error = false;
 $errorMsg = '';
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+// --- NEW HELPER FUNCTION ---
+function getAzureEnv($key) {
+    // Try $_ENV first (Most reliable on Azure)
+    if (isset($_ENV[$key])) return $_ENV[$key];
+    
+    // Try Server global
+    if (isset($_SERVER[$key])) return $_SERVER[$key];
+    
+    // Try standard getenv
+    $val = getenv($key);
+    if ($val !== false && $val !== '') return $val;
 
-    // 1. Sanitize Input
+    return null;
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // 1. Capture Inputs
     $name    = trim($_POST['name'] ?? '');
     $email   = trim($_POST['email'] ?? '');
     $address = trim($_POST['address'] ?? '');
@@ -13,13 +27,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $state   = trim($_POST['state'] ?? '');
     $zip     = trim($_POST['zip'] ?? '');
 
-    // 2. Validate Input
+    // 2. Validate
     if ($name === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $error = true;
         $errorMsg = 'Please enter a valid name and email.';
     } else {
-        // 3. Connect to Cosmos DB
-        // Ensure db_connect.php is in the same folder
+        // 3. Connect
         if (file_exists('db_connect.php')) {
             require_once 'db_connect.php';
         } else {
@@ -28,20 +41,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         if (!$error) {
-            // Retrieve keys from Azure App Service Environment Variables
-            $host = getenv('COSMOS_ENDPOINT');
-            $key = getenv('COSMOS_KEY');
-            $database = 'WeddingDB'; // Ensure this matches your Azure setup
-            $container = 'Guests';   // Ensure this matches your Azure setup
+            // --- USE THE NEW FUNCTION HERE ---
+            $host = getAzureEnv('COSMOS_ENDPOINT');
+            $key = getAzureEnv('COSMOS_KEY');
+            
+            $database = 'WeddingDB'; 
+            $container = 'Guests';
 
+            // Debug Logic
             if (!$host || !$key) {
                 $error = true;
                 $errorMsg = 'Database configuration error. Please check App Service settings.';
             } else {
-                // Initialize Connection
                 $cosmos = new CosmosDB($host, $key, $database, $container);
-
-                // Prepare Data Package (JSON)
+                
                 $guestData = [
                     'name'    => $name,
                     'email'   => $email,
@@ -49,18 +62,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'city'    => $city,
                     'state'   => $state,
                     'zip'     => $zip,
-                    'date'    => date('Y-m-d H:i:s') // Timestamp
+                    'date'    => date('Y-m-d H:i:s')
                 ];
 
-                // Send to Azure
                 $result = $cosmos->createDocument($guestData);
 
-                // Check Result (HTTP 200-299 means success)
                 if ($result['code'] >= 200 && $result['code'] < 300) {
                     $success = true;
                 } else {
                     $error = true;
-                    // Log the error code for debugging (optional)
                     $errorMsg = 'Could not save RSVP. Error Code: ' . $result['code'];
                 }
             }
