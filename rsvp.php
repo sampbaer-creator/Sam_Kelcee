@@ -1,11 +1,13 @@
 <?php
-// --- HARDCODED CREDENTIALS (THE GUARANTEED FIX) ---
-// Go to Azure Cosmos DB -> Keys -> Copy URI and PRIMARY KEY
+// --- CONFIGURATION ---
+// 1. Paste your Primary Key between the quotes below
+$my_key  = 'ezQFDCdIGw1gvKIlceXfnymph21fhb7gxP1EcsFqOCnzxkf9DtGp9yuKfvZfaZy3hKjSJhClPGSXACDbj1DlrQ=='; 
+
+// 2. We set these for you based on your screenshot
 $my_host = 'https://kelceesam.documents.azure.com:443/'; 
-$my_key  = 'ezQFDCdIGw1gvKIlceXfnymph21fhb7gxP1EcsFqOCnzxkf9DtGp9yuKfvZfaZy3hKjSJhClPGSXACDbj1DlrQ==';
-$my_db   = 'WeddingDB';
-$my_col  = 'Guests';
-// --------------------------------------------------
+$my_db   = 'WeddingDB';  // Must match Azure EXACTLY (Capitals matter!)
+$my_col  = 'Guests';     // Must match Azure EXACTLY
+// ---------------------
 
 class CosmosDB {
     private $host, $key, $db, $coll;
@@ -15,44 +17,75 @@ class CosmosDB {
         $this->db = $db;
         $this->coll = $coll;
     }
+    
     private function request($verb, $rid, $rtype, $data = null) {
         $date = gmdate('D, d M Y H:i:s T');
         $keyDecoded = base64_decode($this->key);
-        $sigString = strtolower("$verb\n$rtype\n$rid\n$date\n\n");
+        
+        // --- THE FIX: DO NOT LOWERCASE THE RESOURCE ID ($rid) ---
+        // We only lowercase the verb and resource type. 
+        // We keep $rid exactly as you typed it (WeddingDB).
+        $sigString = strtolower($verb) . "\n" . 
+                     strtolower($rtype) . "\n" . 
+                     $rid . "\n" . 
+                     strtolower($date) . "\n" . 
+                     "" . "\n";
+                     
         $sig = base64_encode(hash_hmac('sha256', $sigString, $keyDecoded, true));
         $auth = urlencode("type=master&ver=1.0&sig=$sig");
-        $headers = ["Authorization: $auth", "x-ms-date: $date", "x-ms-version: 2018-12-31", "Content-Type: application/json"];
-        $url = "https://" . parse_url($this->host, PHP_URL_HOST) . "/dbs/{$this->db}/colls/{$this->coll}/$rtype";
+        
+        $headers = [
+            "Authorization: $auth",
+            "x-ms-date: $date",
+            "x-ms-version: 2018-12-31",
+            "Content-Type: application/json"
+        ];
+        
+        // Remove port number for the actual curl request to avoid DNS issues
+        $cleanHost = parse_url($this->host, PHP_URL_HOST);
+        $url = "https://" . $cleanHost . "/dbs/{$this->db}/colls/{$this->coll}/$rtype";
+        
         $ch = curl_init($url);
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $verb);
         curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        // SSL Verify false is sometimes needed on older Azure PHP stacks, but try true first
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true); 
         if ($data) curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+        
         $res = curl_exec($ch);
         $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $curlErr = curl_error($ch);
         curl_close($ch);
-        return ['code' => $code, 'data' => json_decode($res, true)];
+        
+        return ['code' => $code, 'data' => json_decode($res, true), 'curl_err' => $curlErr];
     }
+    
     public function createDocument($data) {
         if (!isset($data['id'])) $data['id'] = uniqid(); 
-        return $this->request('POST', "dbs/{$this->db}/colls/{$this->coll}", 'docs', $data);
+        // For creating a document, the Resource ID is the COLLECTION link
+        $rid = "dbs/{$this->db}/colls/{$this->coll}";
+        return $this->request('POST', $rid, 'docs', $data);
     }
 }
 
 $success = false; $error = false; $errorMsg = '';
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $name = trim($_POST['name'] ?? '');
     $email = trim($_POST['email'] ?? '');
-    // Simple validation
+    
     if ($name === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $error = true; $errorMsg = 'Please enter a valid name and email.';
     } else {
-        // CONNECT
         $cosmos = new CosmosDB($my_host, $my_key, $my_db, $my_col);
+        
         $guestData = [
             'name' => $name, 'email' => $email,
-            'address' => $_POST['address'] ?? '', 'city' => $_POST['city'] ?? '',
-            'state' => $_POST['state'] ?? '', 'zip' => $_POST['zip'] ?? '',
+            'address' => $_POST['address'] ?? '',
+            'city' => $_POST['city'] ?? '',
+            'state' => $_POST['state'] ?? '',
+            'zip' => $_POST['zip'] ?? '',
             'date' => date('Y-m-d H:i:s')
         ];
         
@@ -62,10 +95,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $success = true;
         } else {
             $error = true;
-            // SHOW THE EXACT ERROR CODE
-            $errorMsg = 'Error Code: ' . $result['code'];
-            if ($result['code'] == 404) $errorMsg .= ' (Database not found - Did you create it?)';
-            if ($result['code'] == 401) $errorMsg .= ' (Keys are wrong)';
+            $errorMsg = 'Error ' . $result['code'] . ': ' . ($result['data']['message'] ?? 'Unknown Error');
+            if ($result['code'] == 0) $errorMsg .= ' (Connection Failed: ' . $result['curl_err'] . ')';
+            if ($result['code'] == 401) $errorMsg .= ' (Keys rejected - check capitalization)';
+            if ($result['code'] == 404) $errorMsg .= ' (Database "WeddingDB" or Container "Guests" not found)';
         }
     }
 }
@@ -78,6 +111,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
 </head>
 <body class="bg-gray-50 text-gray-800 font-sans">
+<header class="bg-white/80 sticky top-0 z-50 shadow-sm backdrop-blur">
+  <div class="max-w-5xl mx-auto px-6 py-4 flex justify-between items-center">
+    <a href="index.html" class="text-2xl font-bold text-blue-900">Samuel & Kelcee</a>
+    <nav class="hidden md:flex space-x-4 text-sm font-semibold">
+      <a href="index.html">Home</a>
+      <a href="rsvp.php" class="text-blue-600">Address</a>
+      <a href="registry.html">Registry</a>
+    </nav>
+  </div>
+</header>
+
 <main class="max-w-2xl mx-auto px-4 py-12 space-y-8">
 <h1 class="text-3xl font-bold text-blue-900">Request Invitation</h1>
 
@@ -88,8 +132,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <?php endif; ?>
 
 <?php if ($error): ?>
-<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
-<strong>Error.</strong> <?= htmlspecialchars($errorMsg) ?>
+<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded break-words">
+<strong>Error:</strong> <?= htmlspecialchars($errorMsg) ?>
 </div>
 <?php endif; ?>
 
