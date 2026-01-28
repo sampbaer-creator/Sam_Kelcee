@@ -1,7 +1,7 @@
 <?php
 // --- CONFIGURATION ---
 // 1. Paste your Primary Key between the quotes below
-$my_key  = 'PASTE_YOUR_LONG_KEY_HERE'; 
+$my_key  = 'ezQFDCdIGw1gvKIlceXfnymph21fhb7gxP1EcsFqOCnzxkf9DtGp9yuKfvZfaZy3hKjSJhClPGSXACDbj1DlrQ=='; 
 
 // 2. Configuration for Azure
 $my_host = 'https://kelceesam.documents.azure.com:443/'; 
