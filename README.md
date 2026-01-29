@@ -26,15 +26,3 @@ This is a dynamic wedding website hosted on **Microsoft Azure**. It uses **PHP**
 * **Hosting:** Azure Web App (Linux / PHP 8.2+)
 * **Database:** Azure Cosmos DB (NoSQL)
 * **Language:** PHP (Backend), HTML/Tailwind CSS (Frontend)
-
-**Database Configuration:**
-* **Database ID:** `WeddingDB`
-* **Container ID:** `Guests`
-* **Partition Key:** `/email`
-
----
-
-### ⚠️ Important Notes
-
-* **Security:** The `guestlist.php` page is currently **public**. For a real event, you should add password protection or delete the file after the project is graded.
-* **Cross-Partition Queries:** The guest list page is specially configured to search **all email partitions** to show the full list of guests.
