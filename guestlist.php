@@ -1,6 +1,6 @@
 <?php
 // --- CONFIGURATION ---
-// 1. Paste your Key here one last time
+// 1. Paste your Key here
 $my_key  = 'ezQFDCdIGw1gvKIlceXfnymph21fhb7gxP1EcsFqOCnzxkf9DtGp9yuKfvZfaZy3hKjSJhClPGSXACDbj1DlrQ=='; 
 
 // 2. Settings
@@ -37,8 +37,7 @@ class CosmosDB {
             "x-ms-version: 2018-12-31",
             "Content-Type: application/query+json",
             "x-ms-documentdb-isquery: True",
-            // --- THE FIX: THIS LINE WAS MISSING ---
-            "x-ms-documentdb-query-enablecrosspartition: True" 
+            "x-ms-documentdb-query-enablecrosspartition: True" // Critical for seeing all guests
         ];
 
         $cleanHost = parse_url($this->host, PHP_URL_HOST);
@@ -130,7 +129,7 @@ $guests = $response['Documents'] ?? [];
     <a href="event-details.html" class="hover:text-[var(--sage-green)] text-lg font-semibold">Event Details</a>
   </nav>
 
-  <main class="max-w-4xl mx-auto px-4 py-12 space-y-8 fade-in">
+  <main class="max-w-5xl mx-auto px-4 py-12 space-y-8 fade-in">
     
     <div class="flex justify-between items-end mb-6">
         <div>
@@ -148,12 +147,13 @@ $guests = $response['Documents'] ?? [];
                         <th class="p-4 font-bold">Email</th>
                         <th class="p-4 font-bold">Address</th>
                         <th class="p-4 font-bold">City/State</th>
+                        <th class="p-4 font-bold">Country</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-100">
                     <?php if (empty($guests)): ?>
                         <tr>
-                            <td colspan="4" class="p-8 text-center text-gray-500 italic">
+                            <td colspan="5" class="p-8 text-center text-gray-500 italic">
                                 No guests found. <a href="rsvp.php" class="text-blue-500 underline">Add one?</a>
                             </td>
                         </tr>
@@ -172,6 +172,9 @@ $guests = $response['Documents'] ?? [];
                             <td class="p-4 text-gray-600 text-sm">
                                 <?= htmlspecialchars($g['city'] ?? '') ?>, <?= htmlspecialchars($g['state'] ?? '') ?>
                                 <span class="text-xs text-gray-400 block mt-1"><?= htmlspecialchars($g['zip'] ?? '') ?></span>
+                            </td>
+                            <td class="p-4 text-gray-600 text-sm font-semibold">
+                                <?= htmlspecialchars($g['country'] ?? '') ?>
                             </td>
                         </tr>
                         <?php endforeach; ?>

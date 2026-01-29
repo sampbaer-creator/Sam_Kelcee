@@ -1,22 +1,28 @@
-# Our Wedding — Static Site (tailwind + Firebase placeholder)
+Our Wedding — Azure Web App
+This is a dynamic wedding website hosted on Azure. It uses PHP to save RSVPs directly to an Azure Cosmos DB database.
 
-This is a static HTML wedding site scaffold. It uses Tailwind via CDN for styling and includes a client-side Firebase placeholder for RSVP submissions.
+Getting Started
+Configure Keys: Open rsvp.php and guestlist.php and paste your Azure Cosmos DB Primary Key at the top.
 
-Getting started
-
-1. Open `our-wedding-static` in a simple static server (or just open `index.html` in a browser).
-
-2. To enable Firestore writes, replace the config in `js/firebase.js` with your project's Firebase config and ensure Firestore rules allow writes for your workflow (or secure accordingly).
+Deploy: Push this folder to your GitHub repository connected to your Azure Web App.
 
 Features
-- Pages: `index.html`, `rsvp.html`, `registry.html`, `event-details.html`.
-- RSVP form saves to Firestore when configured, otherwise falls back to `localStorage`.
-- Countdown timer on the home page.
+Pages: index.html, rsvp.php (form), guestlist.php (admin view), registry.html.
+
+Database: RSVPs are saved instantly to Azure Cosmos DB (WeddingDB).
+
+Admin: guestlist.php shows a live table of everyone who has responded.
+
+Countdown: Live countdown timer on the home page.
 
 Deploy
-- You can host this as static files on GitHub Pages, Firebase Hosting, Netlify, or Vercel.
+This project is designed to run on an Azure Web App (Linux/PHP).
+
+It deploys automatically via GitHub Actions when you push to your repository.
 
 Notes
-- The Firebase setup is intentionally minimal for quick prototyping. For production, secure Firestore with appropriate rules and consider server-side validation or Cloud Functions for email delivery or CSV export.
+Database Setup: Requires an Azure Cosmos DB with database WeddingDB and container Guests.
 
-Feel free to tell me any text, images, or links you want customized (names, wedding date, registry links, map locations), and I’ll update them.
+Partition Key: The container must use /email as the partition key.
+
+Security: The guestlist.php page is public; for a real event, consider adding a password check.
