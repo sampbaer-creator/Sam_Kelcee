@@ -36,7 +36,9 @@ class CosmosDB {
             "x-ms-date: $date",
             "x-ms-version: 2018-12-31",
             "Content-Type: application/query+json",
-            "x-ms-documentdb-isquery: True" // Required for SQL queries
+            "x-ms-documentdb-isquery: True",
+            // --- THE FIX: THIS LINE WAS MISSING ---
+            "x-ms-documentdb-query-enablecrosspartition: True" 
         ];
 
         $cleanHost = parse_url($this->host, PHP_URL_HOST);
@@ -56,7 +58,6 @@ class CosmosDB {
     }
     
     public function getGuests() {
-        // SQL Query to select everyone
         $sql = ["query" => "SELECT * FROM c"];
         $rid = "dbs/{$this->db}/colls/{$this->coll}";
         return $this->request('POST', $rid, 'docs', $sql);
@@ -101,7 +102,6 @@ $guests = $response['Documents'] ?? [];
     .fade-in { opacity: 0; transform: translateY(10px); transition: opacity 0.6s ease, transform 0.6s ease; }
     .is-visible { opacity: 1; transform: none; }
 
-    /* Mobile Menu */
     #menu-overlay { position: fixed; inset: 0; background-color: rgba(0,0,0,0.4); z-index: 30; display: none; }
     #mobile-menu { position: fixed; top:0; left:0; height:100%; width:250px; background:white; z-index:40; transform:translateX(-100%); transition: transform 0.3s ease-in-out; padding:2rem 1.5rem; display:flex; flex-direction:column; gap:1rem; }
     #mobile-menu.open { transform: translateX(0); }
@@ -137,7 +137,6 @@ $guests = $response['Documents'] ?? [];
             <h1 class="text-3xl font-display" style="color: var(--dusty-blue)">Guest List</h1>
             <p class="text-gray-600">Total RSVPs: <strong><?= count($guests) ?></strong></p>
         </div>
-        <a href="upload_json.php" class="text-sm font-semibold text-[var(--sage-green)] hover:underline">Bulk Upload</a>
     </div>
 
     <div class="card">
