@@ -1,14 +1,14 @@
 <?php
 // --- CONFIGURATION ---
-// 1. Paste your Primary Key between the quotes below
+// 1. Paste your Key here
 $my_key  = 'ezQFDCdIGw1gvKIlceXfnymph21fhb7gxP1EcsFqOCnzxkf9DtGp9yuKfvZfaZy3hKjSJhClPGSXACDbj1DlrQ=='; 
 
-// 2. Configuration for Azure
+// 2. Configuration
 $my_host = 'https://kelceesam.documents.azure.com:443/'; 
 $my_db   = 'WeddingDB';
 $my_col  = 'Guests';
 
-// --- COSMOS DB CLASS (Do not edit) ---
+// --- COSMOS DB CLASS ---
 class CosmosDB {
     private $host, $key, $db, $coll;
     public function __construct($host, $key, $db, $coll) {
@@ -38,7 +38,6 @@ class CosmosDB {
             "Content-Type: application/json"
         ];
 
-        // Add Partition Key Header
         if ($pk !== null) {
             $headers[] = "x-ms-documentdb-partitionkey: " . json_encode([$pk]);
         }
@@ -55,17 +54,15 @@ class CosmosDB {
         
         $res = curl_exec($ch);
         $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        $curlErr = curl_error($ch);
         curl_close($ch);
         
-        return ['code' => $code, 'data' => json_decode($res, true), 'curl_err' => $curlErr];
+        return ['code' => $code, 'data' => json_decode($res, true)];
     }
     
     public function createDocument($data) {
         if (!isset($data['id'])) $data['id'] = uniqid(); 
         $rid = "dbs/{$this->db}/colls/{$this->coll}";
-        $partitionKey = $data['email'] ?? null;
-        return $this->request('POST', $rid, 'docs', $data, $partitionKey);
+        return $this->request('POST', $rid, 'docs', $data, $data['email'] ?? null);
     }
 }
 
@@ -82,11 +79,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $cosmos = new CosmosDB($my_host, $my_key, $my_db, $my_col);
         
         $guestData = [
-            'name' => $name, 'email' => $email,
+            'name' => $name, 
+            'email' => $email,
             'address' => $_POST['address'] ?? '',
             'city' => $_POST['city'] ?? '',
             'state' => $_POST['state'] ?? '',
             'zip' => $_POST['zip'] ?? '',
+            'country' => $_POST['country'] ?? '',
             'date' => date('Y-m-d H:i:s')
         ];
         
@@ -216,18 +215,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <input name="address" placeholder="123 Wedding Lane" class="w-full rounded border-gray-200 p-2 focus:ring-[var(--sage-green)] focus:border-[var(--sage-green)]">
       </div>
 
-      <div class="grid grid-cols-3 gap-3">
+      <div class="grid grid-cols-2 gap-3">
         <div>
            <label class="block text-sm font-medium text-gray-700 mb-1">City</label>
            <input name="city" placeholder="City" class="w-full rounded border-gray-200 p-2 focus:ring-[var(--sage-green)] focus:border-[var(--sage-green)]">
         </div>
         <div>
-           <label class="block text-sm font-medium text-gray-700 mb-1">State</label>
-           <input name="state" placeholder="State" class="w-full rounded border-gray-200 p-2 focus:ring-[var(--sage-green)] focus:border-[var(--sage-green)]">
+           <label class="block text-sm font-medium text-gray-700 mb-1">State / Region</label>
+           <input name="state" placeholder="State/Province" class="w-full rounded border-gray-200 p-2 focus:ring-[var(--sage-green)] focus:border-[var(--sage-green)]">
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+           <label class="block text-sm font-medium text-gray-700 mb-1">Zip / Postal Code</label>
+           <input name="zip" placeholder="Zip/Postal" class="w-full rounded border-gray-200 p-2 focus:ring-[var(--sage-green)] focus:border-[var(--sage-green)]">
         </div>
         <div>
-           <label class="block text-sm font-medium text-gray-700 mb-1">Zip</label>
-           <input name="zip" placeholder="Zip" class="w-full rounded border-gray-200 p-2 focus:ring-[var(--sage-green)] focus:border-[var(--sage-green)]">
+           <label class="block text-sm font-medium text-gray-700 mb-1">Country</label>
+           <input name="country" placeholder="Country" class="w-full rounded border-gray-200 p-2 focus:ring-[var(--sage-green)] focus:border-[var(--sage-green)]">
         </div>
       </div>
 
