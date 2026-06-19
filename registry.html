@@ -3,142 +3,73 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Registry — Samuel & Kelcee's Wedding</title>
-
+  <title>Registry - Samuel &amp; Kelcee</title>
   <script src="https://cdn.tailwindcss.com?plugins=forms,typography,aspect-ratio"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Quicksand:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/styles.css">
-
-  <style>
-    :root {
-      --dusty-blue: #A8C3D1;
-      --sage-green: #B7C9A9;
-      --blush-pink: #F3CFC6;
-      --neutral: #FAF9F7;
-    }
-    body { background-color: var(--neutral); }
-
-    .btn-accent {
-      background: linear-gradient(90deg, var(--sage-green), var(--dusty-blue));
-      color: white;
-      border-radius: 999px;
-      padding: 0.6rem 1.4rem;
-      font-weight: 500;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-      transition: 0.2s ease-in-out;
-    }
-    .btn-accent:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 4px 16px rgba(0,0,0,0.12);
-      opacity: 0.95;
-    }
-
-    .card {
-      background: white;
-      padding: 1.75rem;
-      border-radius: 1rem;
-      border: 1px solid rgba(0,0,0,0.07);
-      box-shadow: 0 6px 18px rgba(0,0,0,0.04);
-    }
-
-    .fade-in { opacity: 0; transform: translateY(10px); transition: opacity 0.6s ease, transform 0.6s ease; }
-    .is-visible { opacity: 1; transform: none; }
-
-    /* Mobile menu overlay */
-    #menu-overlay { position: fixed; inset: 0; background-color: rgba(0,0,0,0.4); z-index: 30; display: none; }
-
-    /* Slide-in menu */
-    #mobile-menu {
-      position: fixed;
-      top: 0;
-      left: 0;
-      height: 100%;
-      width: 250px;
-      background-color: white;
-      z-index: 40;
-      transform: translateX(-100%);
-      transition: transform 0.3s ease-in-out;
-      padding: 2rem 1.5rem;
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-    }
-    #mobile-menu.open { transform: translateX(0); }
-  </style>
 </head>
-<body class="antialiased text-gray-800 font-sans">
-
-  <!-- HEADER -->
-  <header class="bg-white/80 sticky top-0 z-50 shadow-sm backdrop-blur">
-    <div class="max-w-5xl mx-auto px-6 py-4 flex justify-between items-center">
-      <a href="index.html" class="font-display text-2xl" style="color: var(--dusty-blue)">Samuel & Kelcee Baer</a>
-      <nav class="hidden md:flex space-x-4 text-sm font-semibold">
-        <a href="index.html" style="color: var(--dusty-blue)" class="hover:text-[var(--sage-green)]">Home</a>
-        <a href="rsvp.php" class="hover:text-[var(--sage-green)]">Address</a>
-        <a href="registry.html" class="hover:text-[var(--sage-green)]">Registry</a>
-        <a href="event-details.html" class="hover:text-[var(--sage-green)]">Event Details</a>
+<body>
+  <header class="site-header">
+    <div class="site-nav">
+      <a href="index.html" class="brand">Samuel &amp; Kelcee</a>
+      <nav class="nav-links" aria-label="Primary navigation">
+        <a href="index.html">Home</a>
+        <a href="event-details.html">Event Details</a>
+        <a href="registry.html" class="active">Registry</a>
+        <a href="rsvp.php">Request Invitation</a>
       </nav>
-      <button id="menu-btn" class="md:hidden text-2xl font-bold focus:outline-none" style="color: var(--dusty-blue)">☰</button>
+      <button id="menu-btn" class="menu-button" type="button" aria-label="Open menu" aria-controls="mobile-menu" aria-expanded="false">
+        <span class="menu-icon" aria-hidden="true"></span>
+      </button>
     </div>
   </header>
 
-  <!-- Mobile overlay -->
-  <div id="menu-overlay"></div>
-
-  <!-- Mobile menu -->
-  <nav id="mobile-menu" class="md:hidden">
-    <a href="index.html" style="color: var(--dusty-blue)" class="hover:text-[var(--sage-green)] text-lg font-semibold">Home</a>
-    <a href="rsvp.php"hover:text-[var(--sage-green)] text-lg font-semibold">Address</a>
-    <a href="registry.html" class="hover:text-[var(--sage-green)] text-lg font-semibold">Registry</a>
-    <a href="event-details.html" class="hover:text-[var(--sage-green)] text-lg font-semibold">Event Details</a>
+  <div id="menu-overlay" class="menu-overlay"></div>
+  <nav id="mobile-menu" class="mobile-menu" aria-label="Mobile navigation">
+    <a href="index.html">Home</a>
+    <a href="event-details.html">Event Details</a>
+    <a href="registry.html">Registry</a>
+    <a href="rsvp.php">Request Invitation</a>
   </nav>
 
-  <!-- MAIN -->
-  <main class="max-w-3xl mx-auto px-4 sm:px-6 py-10 space-y-8 fade-in">
-    <h1 class="text-3xl font-display mb-2" style="color: var(--dusty-blue)">Registry</h1>
-    <img src="images/wedding_4.jpg" alt="Registry decor" class="rounded-lg shadow-md mb-6">
+  <main class="page-shell">
+    <section class="page-hero fade-in">
+      <p class="eyebrow">Registry</p>
+      <h1 class="font-display">Your presence is enough.</h1>
+      <p class="lede max-w-3xl mt-5">
+        If you would like to contribute as we start this next chapter, the options below are available.
+      </p>
+    </section>
 
-    <p>Your love and presence mean everything to us! If you’d like to contribute, here are some options:</p>
-    
-  <div class="card">
-    <h3 class="font-display text-[var(--sage-green)] mb-1">Venmo</h3>
-    <a href="https://venmo.com/u/samkelcee_baer" target="_blank" class="text-[var(--dusty-blue)] font-semibold hover:underline">
-      @samkelcee_baer
-    </a>
-  </div>
-
-
-</div>
-
-      <div class="card">
-        <h3 class="font-display text-[var(--sage-green)] mb-1">Amazon Registry</h3>
-        <a href="https://www.amazon.com/wedding/guest-view/2919MISM0IHK7" target="_blank" rel="noopener noreferrer" class="text-[var(--dusty-blue)]">
-          View on Amazon
-        </a>
-      </div>
+    <div class="wide-media fade-in">
+      <img src="images/wedding_4.jpg" alt="Samuel and Kelcee registry photo">
     </div>
+
+    <section class="section">
+      <div class="registry-grid">
+        <article class="card soft fade-in">
+          <p class="eyebrow">Gift fund</p>
+          <h2 class="font-display text-3xl">Venmo</h2>
+          <p class="mt-3">Send a contribution directly through Venmo.</p>
+          <a href="https://venmo.com/u/samkelcee_baer" target="_blank" rel="noopener noreferrer" class="btn-primary mt-6">@samkelcee_baer</a>
+        </article>
+
+        <article class="card soft fade-in">
+          <p class="eyebrow">Registry</p>
+          <h2 class="font-display text-3xl">Amazon Registry</h2>
+          <p class="mt-3">Browse the shared wedding registry on Amazon.</p>
+          <a href="https://www.amazon.com/wedding/guest-view/2919MISM0IHK7" target="_blank" rel="noopener noreferrer" class="btn-primary mt-6">View on Amazon</a>
+        </article>
+      </div>
+    </section>
   </main>
 
-  <footer class="bg-white border-t mt-16 py-6 text-center text-sm text-gray-500">
-    © 2026 Samuel & Kelcee Baer — All Rights Reserved
+  <footer class="site-footer">
+    &copy; 2026 Samuel &amp; Kelcee Baer. All rights reserved.
   </footer>
 
-  <script>
-    const btn = document.getElementById('menu-btn');
-    const menu = document.getElementById('mobile-menu');
-    const overlay = document.getElementById('menu-overlay');
-    btn.addEventListener('click', () => {
-      menu.classList.toggle('open');
-      overlay.style.display = menu.classList.contains('open') ? 'block' : 'none';
-    });
-    overlay.addEventListener('click', () => {
-      menu.classList.remove('open');
-      overlay.style.display = 'none';
-    });
-
-    document.addEventListener('DOMContentLoaded', () => {
-      document.querySelectorAll('.fade-in').forEach(el => el.classList.add('is-visible'));
-    });
-  </script>
+  <script src="js/site.js"></script>
 </body>
 </html>
