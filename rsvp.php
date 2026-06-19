@@ -151,7 +151,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/styles.css?v=palette1">
+  <link rel="stylesheet" href="css/styles.css?v=clock1">
 </head>
 <body>
   <header class="site-header">
@@ -254,6 +254,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     &copy; 2026 Samuel &amp; Kelcee Baer. All rights reserved.
   </footer>
 
-  <script src="js/site.js?v=palette1"></script>
+  <script src="js/site.js?v=clock1"></script>
 </body>
 </html>

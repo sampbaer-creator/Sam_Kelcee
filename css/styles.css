@@ -333,23 +333,48 @@ body.menu-open .mobile-menu {
 .countdown-card {
   display: inline-flex;
   flex-direction: column;
-  gap: 2px;
-  min-width: 176px;
+  gap: 10px;
+  width: 100%;
   border: 1px solid var(--line);
   border-radius: 18px;
   background: white;
   padding: 16px 18px;
 }
 
-#countdown {
-  color: #5a6a52;
-  font-size: 1.25rem;
-  font-weight: 900;
+.countdown-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
 }
 
-.countdown-card span:last-child {
+.time-box {
+  display: grid;
+  min-height: 72px;
+  place-items: center;
+  border-radius: 14px;
+  background: rgba(168, 195, 209, 0.14);
+  padding: 10px 6px;
+  text-align: center;
+}
+
+.time-box span {
+  color: #5a6a52;
+  font-size: clamp(1.35rem, 3vw, 1.9rem);
+  font-weight: 900;
+  line-height: 1;
+}
+
+.time-box small,
+.countdown-note {
   color: var(--muted);
-  font-size: 0.82rem;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.wedding-day {
+  grid-column: 1 / -1;
 }
 
 .photo-grid {
@@ -564,5 +589,9 @@ input:focus {
   .card {
     border-radius: 16px;
     padding: 20px;
+  }
+
+  .countdown-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
