@@ -1,14 +1,18 @@
 :root {
-  --ink: #1d1d1f;
-  --muted: #6e6e73;
-  --paper: #fbfbfd;
+  --dusty-blue: #a8c3d1;
+  --sage-green: #b7c9a9;
+  --blush-pink: #f3cfc6;
+  --neutral: #faf9f7;
+  --ink: #3a3a33;
+  --muted: #6f756c;
+  --paper: #faf9f7;
   --panel: #ffffff;
-  --line: rgba(0, 0, 0, 0.1);
-  --sage: #71816d;
-  --blue: #7f9bae;
-  --blush: #e9c8c0;
-  --cream: #f5f1ea;
-  --shadow: 0 18px 50px rgba(29, 29, 31, 0.08);
+  --line: rgba(90, 106, 82, 0.16);
+  --sage: var(--sage-green);
+  --blue: var(--dusty-blue);
+  --blush: var(--blush-pink);
+  --cream: #f5f1e8;
+  --shadow: 0 18px 50px rgba(90, 106, 82, 0.12);
 }
 
 html {
@@ -41,8 +45,8 @@ img {
   position: sticky;
   top: 0;
   z-index: 50;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
-  background: rgba(251, 251, 253, 0.82);
+  border-bottom: 1px solid rgba(168, 195, 209, 0.26);
+  background: rgba(250, 249, 247, 0.84);
   backdrop-filter: blur(18px);
 }
 
@@ -56,7 +60,7 @@ img {
 }
 
 .brand {
-  color: var(--ink);
+  color: var(--dusty-blue);
   font-size: 1.05rem;
   font-weight: 700;
   letter-spacing: 0;
@@ -66,7 +70,7 @@ img {
   display: flex;
   align-items: center;
   gap: 6px;
-  color: rgba(29, 29, 31, 0.72);
+  color: rgba(58, 58, 51, 0.72);
   font-size: 0.86rem;
   font-weight: 600;
 }
@@ -79,8 +83,8 @@ img {
 
 .nav-links a:hover,
 .nav-links a.active {
-  background: rgba(113, 129, 109, 0.12);
-  color: var(--ink);
+  background: rgba(183, 201, 169, 0.22);
+  color: #5a6a52;
 }
 
 .menu-button {
@@ -91,8 +95,8 @@ img {
   justify-content: center;
   border: 0;
   border-radius: 999px;
-  background: rgba(29, 29, 31, 0.06);
-  color: var(--ink);
+  background: rgba(168, 195, 209, 0.18);
+  color: #5a6a52;
   cursor: pointer;
 }
 
@@ -141,8 +145,8 @@ img {
   width: min(320px, calc(100% - 40px));
   height: 100vh;
   padding: 72px 24px 24px;
-  background: rgba(255, 255, 255, 0.96);
-  box-shadow: -24px 0 60px rgba(0, 0, 0, 0.12);
+  background: rgba(250, 249, 247, 0.98);
+  box-shadow: -24px 0 60px rgba(90, 106, 82, 0.16);
   transform: translateX(105%);
   transition: transform 220ms ease;
 }
@@ -190,7 +194,7 @@ body.menu-open .mobile-menu {
 
 .eyebrow {
   margin: 0 0 14px;
-  color: var(--sage);
+  color: #5a6a52;
   font-size: 0.78rem;
   font-weight: 800;
   letter-spacing: 0.12em;
@@ -200,7 +204,7 @@ body.menu-open .mobile-menu {
 .hero h1,
 .page-hero h1 {
   margin: 0;
-  color: var(--ink);
+  color: var(--dusty-blue);
   font-size: clamp(3.4rem, 8vw, 6.8rem);
   line-height: 0.92;
   letter-spacing: 0;
@@ -222,7 +226,7 @@ body.menu-open .mobile-menu {
 .wide-media {
   overflow: hidden;
   border-radius: 28px;
-  background: var(--cream);
+  background: linear-gradient(135deg, var(--cream), rgba(243, 207, 198, 0.28));
   box-shadow: var(--shadow);
 }
 
@@ -260,16 +264,16 @@ body.menu-open .mobile-menu {
 }
 
 .btn-primary {
-  border: 1px solid var(--ink);
-  background: var(--ink);
+  border: 1px solid transparent;
+  background: linear-gradient(90deg, var(--sage-green), var(--dusty-blue));
   color: white;
-  box-shadow: 0 12px 28px rgba(29, 29, 31, 0.18);
+  box-shadow: 0 12px 28px rgba(168, 195, 209, 0.28);
 }
 
 .btn-secondary {
-  border: 1px solid rgba(29, 29, 31, 0.16);
+  border: 1px solid rgba(168, 195, 209, 0.48);
   background: rgba(255, 255, 255, 0.78);
-  color: var(--ink);
+  color: #5a6a52;
 }
 
 .btn-primary:hover,
@@ -290,7 +294,7 @@ body.menu-open .mobile-menu {
 .card h2,
 .card h3 {
   margin: 0 0 10px;
-  color: var(--ink);
+  color: var(--dusty-blue);
 }
 
 .section-header h2 {
@@ -319,11 +323,11 @@ body.menu-open .mobile-menu {
   border-radius: 18px;
   background: var(--panel);
   padding: 24px;
-  box-shadow: 0 8px 30px rgba(29, 29, 31, 0.05);
+  box-shadow: 0 8px 30px rgba(90, 106, 82, 0.08);
 }
 
 .card.soft {
-  background: linear-gradient(135deg, rgba(245, 241, 234, 0.9), rgba(255, 255, 255, 0.92));
+  background: linear-gradient(135deg, rgba(245, 241, 232, 0.92), rgba(243, 207, 198, 0.18), rgba(255, 255, 255, 0.95));
 }
 
 .countdown-card {
@@ -338,7 +342,7 @@ body.menu-open .mobile-menu {
 }
 
 #countdown {
-  color: var(--ink);
+  color: #5a6a52;
   font-size: 1.25rem;
   font-weight: 900;
 }
@@ -410,9 +414,9 @@ label {
 
 input {
   width: 100%;
-  border: 1px solid rgba(29, 29, 31, 0.16);
+  border: 1px solid rgba(168, 195, 209, 0.45);
   border-radius: 14px;
-  background: #fbfbfd;
+  background: #fffdfb;
   padding: 13px 14px;
   color: var(--ink);
   outline: none;
@@ -420,9 +424,9 @@ input {
 }
 
 input:focus {
-  border-color: rgba(113, 129, 109, 0.7);
+  border-color: rgba(183, 201, 169, 0.9);
   background: white;
-  box-shadow: 0 0 0 4px rgba(113, 129, 109, 0.12);
+  box-shadow: 0 0 0 4px rgba(183, 201, 169, 0.18);
 }
 
 .notice {
