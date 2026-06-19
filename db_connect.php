@@ -1,54 +1,85 @@
 <?php
-class CosmosDB {
-    private $host, $key, $db, $coll;
+function db_config(): array {
+    return [
+        'host' => getenv('MYSQL_HOST') ?: '127.0.0.1',
+        'port' => getenv('MYSQL_PORT') ?: '3306',
+        'database' => getenv('MYSQL_DATABASE') ?: 'sam_kelcee',
+        'user' => getenv('MYSQL_USER') ?: 'root',
+        'password' => getenv('MYSQL_PASSWORD') ?: '',
+        'ssl_ca' => getenv('MYSQL_SSL_CA') ?: '',
+    ];
+}
 
-    public function __construct($host, $key, $db, $coll) {
-        $this->host = $host;
-        $this->key = $key;
-        $this->db = $db;
-        $this->coll = $coll;
+function wedding_db(): PDO {
+    $config = db_config();
+    $dsn = sprintf(
+        'mysql:host=%s;port=%s;dbname=%s;charset=utf8mb4',
+        $config['host'],
+        $config['port'],
+        $config['database']
+    );
+
+    $options = [
+        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+        PDO::ATTR_EMULATE_PREPARES => false,
+    ];
+
+    if ($config['ssl_ca'] !== '') {
+        $options[PDO::MYSQL_ATTR_SSL_CA] = $config['ssl_ca'];
     }
 
-    private function request($verb, $resourceId, $resourceType, $data = null) {
-        $date = gmdate('D, d M Y H:i:s T');
-        $keyDecoded = base64_decode($this->key);
-        $sigString = strtolower("$verb\n$resourceType\n$resourceId\n$date\n\n");
-        $sig = base64_encode(hash_hmac('sha256', $sigString, $keyDecoded, true));
-        $auth = urlencode("type=master&ver=1.0&sig=$sig");
+    return new PDO($dsn, $config['user'], $config['password'], $options);
+}
 
-        $headers = [
-            "Authorization: $auth",
-            "x-ms-date: $date",
-            "x-ms-version: 2018-12-31",
-            "Content-Type: application/json"
-        ];
+function ensure_guest_table(PDO $db): void {
+    $db->exec("
+        CREATE TABLE IF NOT EXISTS guests (
+            id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            name VARCHAR(255) NOT NULL,
+            email VARCHAR(255) NOT NULL,
+            address VARCHAR(255) NULL,
+            city VARCHAR(120) NULL,
+            state VARCHAR(120) NULL,
+            zip VARCHAR(40) NULL,
+            country VARCHAR(120) NULL,
+            created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            INDEX idx_guests_created_at (created_at),
+            INDEX idx_guests_email (email)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    ");
+}
 
-        if ($resourceType === 'docs' && $verb === 'POST' && isset($data['query'])) {
-            $headers[] = "x-ms-documentdb-isquery: True";
-            $headers[] = "Content-Type: application/query+json";
-        }
+function create_guest(array $guest): void {
+    $db = wedding_db();
+    ensure_guest_table($db);
 
-        $ch = curl_init("https://" . parse_url($this->host, PHP_URL_HOST) . "/dbs/{$this->db}/colls/{$this->coll}/$resourceType");
-        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $verb);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        if ($data) curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
-        
-        $response = curl_exec($ch);
-        $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
-        
-        return ['code' => $code, 'data' => json_decode($response, true)];
-    }
+    $stmt = $db->prepare("
+        INSERT INTO guests (name, email, address, city, state, zip, country)
+        VALUES (:name, :email, :address, :city, :state, :zip, :country)
+    ");
 
-    public function createDocument($data) {
-        // Assign a unique ID if one doesn't exist
-        if (!isset($data['id'])) $data['id'] = uniqid(); 
-        return $this->request('POST', "dbs/{$this->db}/colls/{$this->coll}", 'docs', $data);
-    }
+    $stmt->execute([
+        ':name' => $guest['name'],
+        ':email' => $guest['email'],
+        ':address' => $guest['address'] ?: null,
+        ':city' => $guest['city'] ?: null,
+        ':state' => $guest['state'] ?: null,
+        ':zip' => $guest['zip'] ?: null,
+        ':country' => $guest['country'] ?: null,
+    ]);
+}
 
-    public function query($sql) {
-        return $this->request('POST', "dbs/{$this->db}/colls/{$this->coll}", 'docs', ['query' => $sql]);
-    }
+function get_guests(): array {
+    $db = wedding_db();
+    ensure_guest_table($db);
+
+    $stmt = $db->query("
+        SELECT name, email, address, city, state, zip, country, created_at
+        FROM guests
+        ORDER BY created_at DESC
+    ");
+
+    return $stmt->fetchAll();
 }
 ?>

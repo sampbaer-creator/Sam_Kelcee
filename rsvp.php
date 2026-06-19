@@ -1,89 +1,8 @@
 <?php
-function cosmos_config(): array {
-    $config = [
-        'key' => getenv('COSMOS_DB_KEY') ?: '',
-        'host' => getenv('COSMOS_DB_HOST') ?: 'https://kelceesam.documents.azure.com:443/',
-        'db' => getenv('COSMOS_DB_NAME') ?: 'WeddingDB',
-        'coll' => getenv('COSMOS_DB_COLLECTION') ?: 'Guests',
-    ];
-
-    $missing = [];
-    if ($config['key'] === '') {
-        $missing[] = 'COSMOS_DB_KEY';
-    }
-
-    return [$config, $missing];
-}
+require_once __DIR__ . '/db_connect.php';
 
 function h($value): string {
     return htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8');
-}
-
-class CosmosDB {
-    private $host, $key, $db, $coll;
-
-    public function __construct($host, $key, $db, $coll) {
-        $this->host = $host;
-        $this->key = $key;
-        $this->db = $db;
-        $this->coll = $coll;
-    }
-
-    private function request($verb, $rid, $rtype, $data = null, $pk = null) {
-        $date = gmdate('D, d M Y H:i:s T');
-        $keyDecoded = base64_decode($this->key);
-
-        $sigString = strtolower($verb) . "\n" .
-                     strtolower($rtype) . "\n" .
-                     $rid . "\n" .
-                     strtolower($date) . "\n" .
-                     "" . "\n";
-
-        $sig = base64_encode(hash_hmac('sha256', $sigString, $keyDecoded, true));
-        $auth = urlencode("type=master&ver=1.0&sig=$sig");
-
-        $headers = [
-            "Authorization: $auth",
-            "x-ms-date: $date",
-            "x-ms-version: 2018-12-31",
-            "Content-Type: application/json"
-        ];
-
-        if ($pk !== null) {
-            $headers[] = "x-ms-documentdb-partitionkey: " . json_encode([$pk]);
-        }
-
-        $cleanHost = parse_url($this->host, PHP_URL_HOST);
-        $url = "https://" . $cleanHost . "/dbs/{$this->db}/colls/{$this->coll}/$rtype";
-
-        $ch = curl_init($url);
-        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $verb);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
-        if ($data) {
-            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
-        }
-
-        $res = curl_exec($ch);
-        $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        $curlError = curl_error($ch);
-        curl_close($ch);
-
-        if ($res === false) {
-            return ['code' => 0, 'data' => ['message' => $curlError ?: 'Request failed']];
-        }
-
-        return ['code' => $code, 'data' => json_decode($res, true)];
-    }
-
-    public function createDocument($data) {
-        if (!isset($data['id'])) {
-            $data['id'] = uniqid();
-        }
-        $rid = "dbs/{$this->db}/colls/{$this->coll}";
-        return $this->request('POST', $rid, 'docs', $data, $data['email'] ?? null);
-    }
 }
 
 $success = false;
@@ -108,35 +27,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = true;
         $errorMsg = 'Please enter a valid name and email.';
     } else {
-        [$config, $missingConfig] = cosmos_config();
-
-        if (!empty($missingConfig)) {
+        try {
+            create_guest($form);
+            $success = true;
+            foreach ($form as $field => $_) {
+                $form[$field] = '';
+            }
+        } catch (Throwable $e) {
             $error = true;
             $errorMsg = 'The invitation form is temporarily unavailable. Please try again later.';
-        } else {
-            $cosmos = new CosmosDB($config['host'], $config['key'], $config['db'], $config['coll']);
-            $guestData = [
-                'name' => $form['name'],
-                'email' => $form['email'],
-                'address' => $form['address'],
-                'city' => $form['city'],
-                'state' => $form['state'],
-                'zip' => $form['zip'],
-                'country' => $form['country'],
-                'date' => date('Y-m-d H:i:s')
-            ];
-
-            $result = $cosmos->createDocument($guestData);
-
-            if ($result['code'] >= 200 && $result['code'] < 300) {
-                $success = true;
-                foreach ($form as $field => $_) {
-                    $form[$field] = '';
-                }
-            } else {
-                $error = true;
-                $errorMsg = 'Error ' . $result['code'] . ': ' . ($result['data']['message'] ?? 'Unknown Error');
-            }
         }
     }
 }

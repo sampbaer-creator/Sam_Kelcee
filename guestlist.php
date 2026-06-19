@@ -1,101 +1,17 @@
 <?php
-function cosmos_config(): array {
-    $config = [
-        'key' => getenv('COSMOS_DB_KEY') ?: '',
-        'host' => getenv('COSMOS_DB_HOST') ?: 'https://kelceesam.documents.azure.com:443/',
-        'db' => getenv('COSMOS_DB_NAME') ?: 'WeddingDB',
-        'coll' => getenv('COSMOS_DB_COLLECTION') ?: 'Guests',
-    ];
-
-    $missing = [];
-    if ($config['key'] === '') {
-        $missing[] = 'COSMOS_DB_KEY';
-    }
-
-    return [$config, $missing];
-}
+require_once __DIR__ . '/db_connect.php';
 
 function h($value): string {
     return htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8');
 }
 
-class CosmosDB {
-    private $host, $key, $db, $coll;
-
-    public function __construct($host, $key, $db, $coll) {
-        $this->host = $host;
-        $this->key = $key;
-        $this->db = $db;
-        $this->coll = $coll;
-    }
-
-    private function request($verb, $rid, $rtype, $sql = null) {
-        $date = gmdate('D, d M Y H:i:s T');
-        $keyDecoded = base64_decode($this->key);
-
-        $sigString = strtolower($verb) . "\n" .
-                     strtolower($rtype) . "\n" .
-                     $rid . "\n" .
-                     strtolower($date) . "\n" .
-                     "" . "\n";
-
-        $sig = base64_encode(hash_hmac('sha256', $sigString, $keyDecoded, true));
-        $auth = urlencode("type=master&ver=1.0&sig=$sig");
-
-        $headers = [
-            "Authorization: $auth",
-            "x-ms-date: $date",
-            "x-ms-version: 2018-12-31",
-            "Content-Type: application/query+json",
-            "x-ms-documentdb-isquery: True",
-            "x-ms-documentdb-query-enablecrosspartition: True"
-        ];
-
-        $cleanHost = parse_url($this->host, PHP_URL_HOST);
-        $url = "https://" . $cleanHost . "/dbs/{$this->db}/colls/{$this->coll}/$rtype";
-
-        $ch = curl_init($url);
-        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $verb);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
-        if ($sql) {
-            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($sql));
-        }
-
-        $res = curl_exec($ch);
-        $curlError = curl_error($ch);
-        curl_close($ch);
-
-        if ($res === false) {
-            return ['error' => $curlError ?: 'Request failed'];
-        }
-
-        return json_decode($res, true) ?: [];
-    }
-
-    public function getGuests() {
-        $sql = ["query" => "SELECT * FROM c"];
-        $rid = "dbs/{$this->db}/colls/{$this->coll}";
-        return $this->request('POST', $rid, 'docs', $sql);
-    }
-}
-
 $guests = [];
 $configError = '';
-[$config, $missingConfig] = cosmos_config();
 
-if (!empty($missingConfig)) {
-    $configError = 'Guest list is waiting for the Cosmos DB key to be configured in Azure App Settings.';
-} else {
-    $cosmos = new CosmosDB($config['host'], $config['key'], $config['db'], $config['coll']);
-    $response = $cosmos->getGuests();
-
-    if (isset($response['error'])) {
-        $configError = $response['error'];
-    } else {
-        $guests = $response['Documents'] ?? [];
-    }
+try {
+    $guests = get_guests();
+} catch (Throwable $e) {
+    $configError = 'Guest list is temporarily unavailable. Check the MySQL database settings.';
 }
 ?>
 <!DOCTYPE html>
