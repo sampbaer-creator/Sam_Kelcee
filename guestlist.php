@@ -2,16 +2,14 @@
 function cosmos_config(): array {
     $config = [
         'key' => getenv('COSMOS_DB_KEY') ?: '',
-        'host' => getenv('COSMOS_DB_HOST') ?: '',
-        'db' => getenv('COSMOS_DB_NAME') ?: '',
-        'coll' => getenv('COSMOS_DB_COLLECTION') ?: '',
+        'host' => getenv('COSMOS_DB_HOST') ?: 'https://kelceesam.documents.azure.com:443/',
+        'db' => getenv('COSMOS_DB_NAME') ?: 'WeddingDB',
+        'coll' => getenv('COSMOS_DB_COLLECTION') ?: 'Guests',
     ];
 
     $missing = [];
-    foreach ($config as $name => $value) {
-        if ($value === '') {
-            $missing[] = $name;
-        }
+    if ($config['key'] === '') {
+        $missing[] = 'COSMOS_DB_KEY';
     }
 
     return [$config, $missing];
@@ -88,7 +86,7 @@ $configError = '';
 [$config, $missingConfig] = cosmos_config();
 
 if (!empty($missingConfig)) {
-    $configError = 'Missing Azure Cosmos DB app settings: ' . implode(', ', $missingConfig) . '.';
+    $configError = 'Guest list is waiting for the Cosmos DB key to be configured in Azure App Settings.';
 } else {
     $cosmos = new CosmosDB($config['host'], $config['key'], $config['db'], $config['coll']);
     $response = $cosmos->getGuests();

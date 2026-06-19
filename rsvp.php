@@ -2,16 +2,14 @@
 function cosmos_config(): array {
     $config = [
         'key' => getenv('COSMOS_DB_KEY') ?: '',
-        'host' => getenv('COSMOS_DB_HOST') ?: '',
-        'db' => getenv('COSMOS_DB_NAME') ?: '',
-        'coll' => getenv('COSMOS_DB_COLLECTION') ?: '',
+        'host' => getenv('COSMOS_DB_HOST') ?: 'https://kelceesam.documents.azure.com:443/',
+        'db' => getenv('COSMOS_DB_NAME') ?: 'WeddingDB',
+        'coll' => getenv('COSMOS_DB_COLLECTION') ?: 'Guests',
     ];
 
     $missing = [];
-    foreach ($config as $name => $value) {
-        if ($value === '') {
-            $missing[] = $name;
-        }
+    if ($config['key'] === '') {
+        $missing[] = 'COSMOS_DB_KEY';
     }
 
     return [$config, $missing];
@@ -114,7 +112,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if (!empty($missingConfig)) {
             $error = true;
-            $errorMsg = 'The invitation form is missing server configuration. Please set the Azure Cosmos DB app settings.';
+            $errorMsg = 'The invitation form is temporarily unavailable. Please try again later.';
         } else {
             $cosmos = new CosmosDB($config['host'], $config['key'], $config['db'], $config['coll']);
             $guestData = [

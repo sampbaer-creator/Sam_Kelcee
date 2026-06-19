@@ -12,15 +12,19 @@ Dynamic wedding website hosted on Microsoft Azure. The public pages are HTML/CSS
 
 ## Azure App Settings
 
-Do not commit Cosmos DB keys to the repository. Configure these values in the Azure Web App application settings:
+Do not commit Cosmos DB keys to the repository. Configure this value in the Azure Web App application settings:
 
 - `COSMOS_DB_KEY`
+
+These optional settings can override the defaults:
+
 - `COSMOS_DB_HOST`
 - `COSMOS_DB_NAME`
 - `COSMOS_DB_COLLECTION`
 
-The current deployed app uses:
+Default database settings:
 
+- Host: `https://kelceesam.documents.azure.com:443/`
 - Database: `WeddingDB`
 - Collection: `Guests`
 
